@@ -1,0 +1,50 @@
+{
+    "expo": {
+        "name": "Axiom",
+        "slug": "mobile",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/logo.png",
+        "userInterfaceStyle": "light",
+        "newArchEnabled": true,
+        "splash": {
+            "image": "./assets/splash-icon.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+        },
+        "ios": {
+            "supportsTablet": true
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#ffffff"
+            },
+            "edgeToEdgeEnabled": true,
+            "predictiveBackGestureEnabled": false,
+            "usesCleartextTraffic": true,
+            "permissions": [
+                "INTERNET",
+                "ACCESS_NETWORK_STATE",
+                "android.permission.INTERNET",
+                "android.permission.ACCESS_NETWORK_STATE"
+            ],
+            "package": "com.keberson.mobile"
+        },
+        "plugins": [
+            "expo-font",
+            [
+                "expo-image-picker",
+                {
+                    "photosPermission": "Приложение хранит фотографии для дальнейшего исследования деревьев на них."
+                }
+            ]
+        ],
+        "extra": {
+            "apiUrl": "http://51.250.113.243:8000/api",
+            "eas": {
+                "projectId": "4f57d9fa-b42d-49e3-a3cf-246e62889a8d"
+            }
+        }
+    }
+}
