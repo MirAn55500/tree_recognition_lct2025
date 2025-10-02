@@ -1,0 +1,92 @@
+.annotation-popup {
+    max-width: 400px;
+    max-height: 500px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.annotation-popup-content {
+    max-height: 350px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+.annotation-popup-class-tag {
+    font-size: 12px;
+    padding: 2px 8px;
+}
+
+.annotation-popup-species-list {
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.annotation-popup-species-item {
+    margin-bottom: 8px;
+}
+
+.annotation-popup-species-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.annotation-popup-defects-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.annotation-popup-diseases-list {
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.annotation-popup-disease-item {
+    margin-bottom: 6px;
+}
+
+.annotation-popup-disease-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.annotation-popup-disease-tag {
+    margin: 0;
+    font-size: 11px;
+}
+
+.annotation-popup-disease-percentage {
+    font-weight: bold;
+    color: #ff4d4f;
+}
+
+.annotation-popup-dry-branches {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.annotation-popup-progress {
+    margin: 0;
+    flex: 1;
+}
+
+.annotation-popup-descriptions {
+    font-size: 12px;
+}
+
+.annotation-popup-descriptions-label {
+    font-weight: bold;
+    font-size: 12px;
+    width: 30%;
+    background-color: #fafafa;
+}
+
+.annotation-popup-descriptions-content {
+    font-size: 12px;
+}

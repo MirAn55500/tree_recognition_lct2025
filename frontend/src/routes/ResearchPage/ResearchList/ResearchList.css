@@ -1,0 +1,19 @@
+.research-page-container {
+    padding: var(--page-containter-pading);
+    flex: 1;
+    flex-direction: column;
+}
+
+.researches-container {
+    margin-top: 20px;
+}
+
+.research-page-toolbar {
+    align-items: center;
+    justify-content: space-between;
+}
+
+.research-page-toolbar h3 {
+    margin: 0;
+}
+

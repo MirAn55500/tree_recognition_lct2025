@@ -1,0 +1,4 @@
+.terra-draw-controls,
+.terra-draw-controls * {
+    box-sizing: unset !important;
+}

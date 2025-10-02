@@ -1,0 +1,22 @@
+.map-modal-container .ant-modal-body {
+    position: relative;
+}
+
+.map-modal-container .ant-modal-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.map-modal-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.map-modal-container div[tabindex="0"] {
+    height: 100%;
+}
+
+.map-modal-container .ant-modal-body {
+    flex: 1;
+}

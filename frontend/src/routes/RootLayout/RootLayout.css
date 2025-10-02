@@ -1,0 +1,31 @@
+.root-layout-sider {
+    overflow: auto;
+    height: 100vh;
+    position: sticky;
+    inset-inline-start: 0;
+    top: 0;
+    bottom: 0;
+    scrollbar-width: "thin";
+    scrollbar-gutter: "stable";
+}
+
+.root-layout-sider .ant-layout-sider-children {
+    display: flex;
+    flex-direction: column;
+}
+
+.root-layout-content {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.root-layout-menu {
+    flex: 1;
+}
+
+.root-layout-logo-container {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}

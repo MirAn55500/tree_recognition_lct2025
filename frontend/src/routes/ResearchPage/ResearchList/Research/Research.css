@@ -1,0 +1,44 @@
+.research {
+    cursor: pointer;
+    height: 100%;
+}
+
+.research:hover {
+    box-shadow: 0px 0px 7px 0px rgba(34, 60, 80, 0.1);
+}
+
+.research .ant-card-body {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.research .ant-card-head {
+    display: flex;
+    align-items: center;
+    min-height: auto;
+    padding: 0 16px;
+    gap: 16px;
+}
+
+.research .ant-card-head-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+}
+
+.research .ant-card-head-title {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.research .ant-card-extra {
+    flex-shrink: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
