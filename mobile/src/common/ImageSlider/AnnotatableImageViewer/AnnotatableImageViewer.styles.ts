@@ -1,6 +1,4 @@
-import { StyleSheet, Dimensions } from "react-native";
-
-const { height: screenHeight } = Dimensions.get("window");
+import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
     mainContainer: {
@@ -8,10 +6,10 @@ export default StyleSheet.create({
         backgroundColor: "#fff",
     },
     imageContainer: {
-        height: "60%", // 60% экрана для изображения
+        height: "70%",
     },
     annotationsContainer: {
-        height: "40%", // 40% экрана для аннотаций
+        height: "30%",
         backgroundColor: "#f8f8f8",
         borderTopWidth: 1,
         borderTopColor: "#e0e0e0",
@@ -22,7 +20,7 @@ export default StyleSheet.create({
         alignItems: "center",
     },
     annotationCard: {
-        width: 300, // Ширина карточки
+        width: 300,
         marginHorizontal: 8,
         backgroundColor: "#fff",
         borderRadius: 12,
@@ -47,7 +45,7 @@ export default StyleSheet.create({
         textAlign: "center",
     },
     container: {
-        backgroundColor: "#000",
+        backgroundColor: "#ffffffff",
         display: "flex",
     },
     imageWrapper: {

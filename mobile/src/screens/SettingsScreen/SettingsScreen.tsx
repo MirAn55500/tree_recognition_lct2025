@@ -25,43 +25,6 @@ const SettingsScreen = () => {
     const [processPhoto] = useProcessPhotoMutation();
     const [createResearch] = useCreateResearchMutation();
 
-    const testWithXMLHttpRequest = () => {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", "http://51.250.113.243:8000/api/get_researches");
-            xhr.timeout = 10000;
-            xhr.responseType = "text";
-
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    console.log("XHR success:", xhr.response);
-                    try {
-                        const data = JSON.parse(xhr.response);
-                        resolve(data);
-                    } catch (e) {
-                        reject(new Error("JSON parse error"));
-                    }
-                } else {
-                    reject(new Error("HTTP error: " + xhr.status));
-                }
-            };
-
-            xhr.onerror = function () {
-                reject(new Error("Network request failed"));
-            };
-
-            xhr.ontimeout = function () {
-                reject(new Error("Request timeout"));
-            };
-
-            xhr.send();
-        });
-    };
-
-    testWithXMLHttpRequest()
-        .then((data) => console.log("MY XHR Data:", data))
-        .catch((error) => console.log("MY XHR Error:", error));
-
     const toggleOnlineStatusCallback = () => {
         dispatch(toggleOnlineStatus());
     };

@@ -36,18 +36,15 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
     onChange,
     display = "scroll",
 }) => {
-    const [locationModalVisible, setLocationModalVisible] = useState(false);
     const [previewModalVisible, setPreviewModalVisible] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [currentImageForLocation, setCurrentImageForLocation] = useState<number | null>(null);
 
     const openLocationPicker = (index: number) => {
         setCurrentImageForLocation(index);
-        setLocationModalVisible(true);
     };
 
     const closeLocationPicker = () => {
-        setLocationModalVisible(false);
         setCurrentImageForLocation(null);
     };
 
@@ -155,11 +152,11 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
                 </ScrollView>
             )}
 
-            <LocationPickerModal
+            {/* <LocationPickerModal
                 visible={locationModalVisible}
                 onClose={closeLocationPicker}
                 onLocationSelect={handleLocationSelect}
-            />
+            /> */}
 
             {/* <Modal visible={previewModalVisible} onRequestClose={closeImagePreview}>
                 <WebView source={{ uri: "http://51.250.113.243/research/2" }} style={{ flex: 1 }} />

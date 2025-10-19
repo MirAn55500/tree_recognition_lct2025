@@ -1,6 +1,6 @@
 {
     "expo": {
-        "name": "Axiom",
+        "name": "Axiom ЛЦТ",
         "slug": "mobile",
         "version": "1.0.0",
         "orientation": "portrait",
@@ -8,7 +8,7 @@
         "userInterfaceStyle": "light",
         "newArchEnabled": true,
         "splash": {
-            "image": "./assets/splash-icon.png",
+            "image": "./assets/logo.png",
             "resizeMode": "contain",
             "backgroundColor": "#ffffff"
         },
@@ -17,19 +17,22 @@
         },
         "android": {
             "adaptiveIcon": {
-                "foregroundImage": "./assets/adaptive-icon.png",
+                "foregroundImage": "./assets/logo.png",
                 "backgroundColor": "#ffffff"
             },
             "edgeToEdgeEnabled": true,
             "predictiveBackGestureEnabled": false,
-            "usesCleartextTraffic": true,
             "permissions": [
-                "INTERNET",
-                "ACCESS_NETWORK_STATE",
                 "android.permission.INTERNET",
-                "android.permission.ACCESS_NETWORK_STATE"
+                "android.permission.ACCESS_NETWORK_STATE",
+                "android.permission.RECORD_AUDIO"
             ],
-            "package": "com.keberson.mobile"
+            "package": "com.keberson.mobile",
+            "config": {
+                "googleMaps": {
+                    "apiKey": "process.env.GOOGLE_MAPS_API_KEY"
+                }
+            }
         },
         "plugins": [
             "expo-font",
@@ -38,12 +41,26 @@
                 {
                     "photosPermission": "Приложение хранит фотографии для дальнейшего исследования деревьев на них."
                 }
+            ],
+            [
+                "expo-build-properties",
+                {
+                    "android": {
+                        "usesCleartextTraffic": true
+                    }
+                }
+            ],
+            [
+                "react-native-maps",
+                {
+                    "androidGoogleMapsApiKey": "process.env.GOOGLE_MAPS_API_KEY"
+                }
             ]
         ],
         "extra": {
             "apiUrl": "http://51.250.113.243:8000/api",
             "eas": {
-                "projectId": "4f57d9fa-b42d-49e3-a3cf-246e62889a8d"
+                "projectId": "4fc12817-0b57-4d75-b245-a81b801d5451"
             }
         }
     }

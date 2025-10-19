@@ -35,7 +35,7 @@ const ResearchScreen: React.FC<ResearchScreenProps> = ({ route }) => {
                     style={styles.addButton}
                     onPress={() => navigation.navigate("CreateResearch")}
                 >
-                    <AntDesign name="plus" color="#FFF" />
+                    <AntDesign name="plus" color="#FFF" size={20} />
                 </Button>
             ),
         });

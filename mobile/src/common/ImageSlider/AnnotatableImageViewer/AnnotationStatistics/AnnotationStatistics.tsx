@@ -1,7 +1,8 @@
 import { View, TouchableOpacity, ScrollView } from "react-native";
-import { Text, Button } from "@ant-design/react-native";
+import { Text } from "@ant-design/react-native";
 import { PhotoAnnotation } from "#types/photo";
 import styles from "./AnnotationStatistics.styles";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 interface AnnotationStatisticsProps {
     statistics: PhotoAnnotation;
@@ -130,7 +131,7 @@ const AnnotationStatistics: React.FC<AnnotationStatisticsProps> = ({
                 {statistics.species_confidence.map((confidence, index) => (
                     <View key={index} style={styles.speciesItem}>
                         <View style={styles.speciesHeader}>
-                            <Text>{statistics.species?.[index]}</Text>
+                            <Text style={styles.percentage}>{statistics.species?.[index]}</Text>
                             <Text style={styles.percentage}>{Math.round(confidence * 100)}%</Text>
                         </View>
                         <View style={styles.progressBar}>
@@ -255,30 +256,32 @@ const AnnotationStatistics: React.FC<AnnotationStatisticsProps> = ({
     }
 
     return (
-        <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Статистика аннотации</Text>
-                <TouchableOpacity onPress={hideAnnotationModal} style={styles.closeButton}>
-                    <Text style={styles.closeIcon}>×</Text>
-                </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.contentContainer}>
-                <View style={styles.content}>
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Класс</Text>
-                        <View style={[styles.classTag, { backgroundColor: "#1890ff" }]}>
-                            <Text style={styles.classText}>
-                                {getPlantClassLabel(statistics.class_name)}
-                            </Text>
-                        </View>
-                    </View>
-                    {renderSpecies()}
-                    {renderDefects()}
-                    {renderDiseases()}
+        <SafeAreaProvider>
+            <SafeAreaView style={styles.modalContainer}>
+                <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Статистика аннотации</Text>
+                    <TouchableOpacity onPress={hideAnnotationModal} style={styles.closeButton}>
+                        <Text style={styles.closeIcon}>×</Text>
+                    </TouchableOpacity>
                 </View>
-            </ScrollView>
-        </View>
+
+                <ScrollView style={styles.contentContainer}>
+                    <View style={styles.content}>
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Класс</Text>
+                            <View style={[styles.classTag, { backgroundColor: "#1890ff" }]}>
+                                <Text style={styles.classText}>
+                                    {getPlantClassLabel(statistics.class_name)}
+                                </Text>
+                            </View>
+                        </View>
+                        {renderSpecies()}
+                        {renderDefects()}
+                        {renderDiseases()}
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
+        </SafeAreaProvider>
     );
 };
 

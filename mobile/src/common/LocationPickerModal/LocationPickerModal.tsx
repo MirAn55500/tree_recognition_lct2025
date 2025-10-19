@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Modal, View, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { Modal, View, TouchableOpacity, StyleSheet } from "react-native";
 import { Text } from "@ant-design/react-native";
 import MapView, { Marker, Region, PROVIDER_GOOGLE } from "react-native-maps";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export type LocationPickerType = { latitude: number; longitude: number } | undefined;
 
@@ -50,53 +51,60 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             presentationStyle="pageSheet"
             onRequestClose={onClose}
         >
-            <View style={styles.container}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
-                        <Text style={styles.cancelButtonText}>Отмена</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.title}>Выберите местоположение</Text>
-                    <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
-                        <Text style={styles.confirmButtonText}>Готово</Text>
-                    </TouchableOpacity>
-                </View>
+            <SafeAreaProvider>
+                <SafeAreaView style={styles.container}>
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
+                            <Text style={styles.cancelButtonText}>Отмена</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.title}>Выберите местоположение</Text>
+                        <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
+                            <Text style={styles.confirmButtonText}>Готово</Text>
+                        </TouchableOpacity>
+                    </View>
 
-                <MapView
-                    style={styles.map}
-                    provider={PROVIDER_GOOGLE}
-                    region={region}
-                    onPress={handleMapPress}
-                    onRegionChangeComplete={handleRegionChangeComplete}
-                    showsUserLocation={true}
-                    showsMyLocationButton={true}
-                >
-                    {selectedLocation && (
-                        <Marker
-                            coordinate={selectedLocation}
-                            draggable
-                            onDragEnd={(e) => setSelectedLocation(e.nativeEvent.coordinate)}
-                        />
-                    )}
-                </MapView>
+                    <MapView
+                        style={styles.map}
+                        provider={PROVIDER_GOOGLE}
+                        region={region}
+                        onPress={handleMapPress}
+                        onRegionChangeComplete={handleRegionChangeComplete}
+                        showsUserLocation={true}
+                        showsMyLocationButton={true}
+                    >
+                        {selectedLocation && (
+                            <Marker
+                                coordinate={selectedLocation}
+                                draggable
+                                onDragEnd={(e) => setSelectedLocation(e.nativeEvent.coordinate)}
+                            />
+                        )}
+                    </MapView>
 
-                <View style={styles.instructions}>
-                    <TouchableOpacity onPress={handleReset}>
-                        <Text style={{ ...styles.confirmButtonText, ...styles.centeredButton }}>
-                            Сбросить
+                    <View style={styles.instructions}>
+                        <TouchableOpacity onPress={handleReset}>
+                            <Text
+                                style={{
+                                    ...styles.confirmButtonText,
+                                    ...styles.centeredButton,
+                                }}
+                            >
+                                Сбросить
+                            </Text>
+                        </TouchableOpacity>
+                        <Text style={styles.instructionsText}>
+                            Нажмите на карту для выбора местоположения
                         </Text>
-                    </TouchableOpacity>
-                    <Text style={styles.instructionsText}>
-                        Нажмите на карту для выбора местоположения
-                    </Text>
-                    <Text style={styles.coordinatesText}>
-                        {selectedLocation
-                            ? `Широта: ${selectedLocation.latitude.toFixed(
-                                  6
-                              )}, Долгота: ${selectedLocation.longitude.toFixed(6)}`
-                            : "Местоположение не выбрано"}
-                    </Text>
-                </View>
-            </View>
+                        <Text style={styles.coordinatesText}>
+                            {selectedLocation
+                                ? `Широта: ${selectedLocation.latitude.toFixed(
+                                      6
+                                  )}, Долгота: ${selectedLocation.longitude.toFixed(6)}`
+                                : "Местоположение не выбрано"}
+                        </Text>
+                    </View>
+                </SafeAreaView>
+            </SafeAreaProvider>
         </Modal>
     );
 };

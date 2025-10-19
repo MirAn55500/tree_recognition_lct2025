@@ -46,7 +46,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
                     />
                 </TouchableOpacity>
 
-                {showLocationButton && onLocationPress && (
+                {/* {showLocationButton && onLocationPress && (
                     <TouchableOpacity
                         style={styles.locationButton}
                         onPress={() => onLocationPress(index)}
@@ -55,7 +55,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
                             <Icon name="global" color={hasLocation ? "#0000ffff" : "#818181ff"} />
                         </Text>
                     </TouchableOpacity>
-                )}
+                )} */}
 
                 {showRemoveButton && onRemovePress && (
                     <TouchableOpacity style={styles.removeButton} onPress={onRemovePress}>

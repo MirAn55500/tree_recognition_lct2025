@@ -39,7 +39,6 @@ const AnnotatableImageViewer: React.FC<AnnotatableImageViewerProps> = ({
             index?: number;
         }) => {
             const currentIndex = props.index ?? selectedImageIndex;
-            const currentAnnotations = annotations[currentIndex] || [];
 
             return (
                 <View style={[styles.container, props.style]}>
@@ -48,19 +47,6 @@ const AnnotatableImageViewer: React.FC<AnnotatableImageViewerProps> = ({
                         style={[styles.imageWrapper, props.style]}
                         resizeMode="contain"
                     />
-
-                    {/* <View style={[styles.annotationsOverlay, { width: "100%", height: "100%" }]}>
-                        {currentAnnotations.map((annotation: Annotation) => {
-                            return (
-                                <TouchableWithoutFeedback
-                                    key={annotation.id}
-                                    onPress={() => handleOpenSheet(annotation)}
-                                >
-                                    <View style={[styles.annotation]} />
-                                </TouchableWithoutFeedback>
-                            );
-                        })}
-                    </View> */}
                 </View>
             );
         },

@@ -4,6 +4,7 @@ const styles = StyleSheet.create({
     addButton: {
         marginRight: 16,
         width: 50,
+        height: 30,
         borderWidth: 0,
     },
     addButtonText: {

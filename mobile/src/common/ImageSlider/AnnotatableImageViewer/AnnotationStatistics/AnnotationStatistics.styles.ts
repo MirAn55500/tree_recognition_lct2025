@@ -16,23 +16,23 @@ const styles = StyleSheet.create({
         borderBottomColor: "#f0f0f0",
     },
     modalTitle: {
-        fontSize: 18,
+        fontSize: 24,
         fontWeight: "bold",
         color: "#333",
     },
     closeButton: {
-        width: 32,
-        height: 32,
+        width: 40,
+        height: 40,
         borderRadius: 16,
         backgroundColor: "#f5f5f5",
         justifyContent: "center",
         alignItems: "center",
     },
     closeIcon: {
-        fontSize: 20,
+        fontSize: 30,
         color: "#666",
         fontWeight: "300",
-        lineHeight: 20,
+        lineHeight: 30,
     },
     contentContainer: {
         flex: 1,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     sectionTitle: {
-        fontSize: 14,
+        fontSize: 20,
         fontWeight: "bold",
         color: "#333",
     },
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     },
     classText: {
         color: "white",
-        fontSize: 12,
+        fontSize: 18,
         fontWeight: "500",
     },
     speciesItem: {
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     percentage: {
-        fontSize: 12,
+        fontSize: 18,
         color: "#666",
     },
     progressBar: {
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     },
     defectText: {
         color: "white",
-        fontSize: 10,
+        fontSize: 18,
         fontWeight: "500",
     },
     diseasesContainer: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     },
     diseaseText: {
         color: "white",
-        fontSize: 10,
+        fontSize: 18,
         fontWeight: "500",
     },
 
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     },
     compactClassText: {
         color: "#fff",
-        fontSize: 12,
+        fontSize: 16,
         fontWeight: "600",
     },
     compactContent: {
@@ -156,13 +156,13 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     compactLabel: {
-        fontSize: 12,
+        fontSize: 16,
         color: "#666",
         width: 70,
         fontWeight: "500",
     },
     compactValue: {
-        fontSize: 12,
+        fontSize: 16,
         color: "#333",
         flex: 1,
         flexWrap: "wrap",
