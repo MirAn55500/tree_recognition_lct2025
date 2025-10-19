@@ -7,6 +7,7 @@ class PhotoBase(BaseModel):
     filename: str
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    area_number: Optional[int] = None
 
 class PhotoCreate(PhotoBase):
     pass
@@ -87,3 +88,47 @@ class PhotoID(BaseModel):
 class PhotoIDsResponse(BaseModel):
     photo_ids: List[PhotoID]
     total_count: int
+
+# Dataset schemas
+class DatasetBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class DatasetCreate(DatasetBase):
+    pass
+
+class Dataset(DatasetBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class DatasetWithPhotos(DatasetBase):
+    id: int
+    created_at: datetime
+    photo_ids: List[int]
+
+    class Config:
+        from_attributes = True
+
+class AddPhotoToDatasetRequest(BaseModel):
+    dataset_id: int
+    photo_id: int
+
+class AddPhotoToDatasetResponse(BaseModel):
+    message: str
+    dataset_id: int
+    photo_id: int
+
+class UpdatePhotoStatisticsRequest(BaseModel):
+    statistics: Dict[str, Any]
+
+class UpdatePhotoStatisticsResponse(BaseModel):
+    message: str
+    photo_id: int
+
+class TrainModelResponse(BaseModel):
+    message: str
+    dataset_id: int
+    photos_count: int

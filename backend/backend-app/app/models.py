@@ -11,10 +11,10 @@ class Photo(Base):
     file_path = Column(String)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+    area_number = Column(Integer, nullable=True)  # номер области
     status = Column(String, default="uploaded")  # uploaded, processing, processed, error
     statistics = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
     research_photos = relationship("ResearchPhoto", back_populates="photo")
 
 class Research(Base):
@@ -37,3 +37,29 @@ class ResearchPhoto(Base):
 
     research = relationship("Research", back_populates="research_photos")
     photo = relationship("Photo", back_populates="research_photos")
+
+class Dataset(Base):
+    __tablename__ = "datasets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    description = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    dataset_photos = relationship("DatasetPhoto", back_populates="dataset")
+
+class DatasetPhoto(Base):
+    __tablename__ = "dataset_photos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    dataset_id = Column(Integer, ForeignKey("datasets.id"))
+    photo_id = Column(Integer, ForeignKey("photos.id"))
+
+    dataset = relationship("Dataset", back_populates="dataset_photos")
+    photo = relationship("Photo", back_populates="dataset_photos")
+
+# Add relationship to Photo model
+Photo.dataset_photos = relationship("DatasetPhoto", back_populates="photo")
+
+
+

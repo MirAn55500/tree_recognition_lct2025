@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, BackgroundTasks
+from fastapi import FastAPI, Path, UploadFile, File, Form, HTTPException, Depends, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
@@ -12,9 +12,11 @@ import json
 import os
 import io
 
-from app import crud, models, schemas, minio_client, image_processor
+from app.database import find_areas_for_point, area_points_list, area_ids, areas_info, area_labels
+from app import crud, models, schemas, minio_client, image_processor, model_api
 from app.database import SessionLocal, engine, get_db
 from app.statistics_processor import statistics_processor
+from app.draw import draw_boxes_on_image, BoundingBox, BoundingBoxRequest
 
 # Создаем таблицы
 models.Base.metadata.create_all(bind=engine)
@@ -23,8 +25,7 @@ app = FastAPI(title="Сервис определения заболеваний 
 
 
 origins = [
-    "http://127.0.0.1",
-    "http://51.250.113.243",
+    "*"
 ]
 
 app.add_middleware(
@@ -34,6 +35,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+async def root():
+    return {"message": "Plant Disease Detection Service"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 
 
 @app.post("/api/upload_photo", response_model=schemas.UploadPhotoResponse)
@@ -54,12 +64,22 @@ async def upload_photo(
     if not minio_client.upload_image(contents, filename):
         raise HTTPException(status_code=500, detail="Failed to upload image to storage")
     
+    if latitude is not None and longitude is not None:
+        areas_numbers = find_areas_for_point(latitude, longitude, area_points_list, area_labels)
+        if len(areas_numbers) == 0:
+            area_number = None
+        else:
+            area_number = areas_numbers[0]
+    else:
+        area_number = None
+        
     # Сохраняем в базу данных
     photo_create = schemas.PhotoCreate(
         filename=filename,
         file_path=filename,  # В MinIO путь совпадает с именем файла
         latitude=latitude,
-        longitude=longitude
+        longitude=longitude,
+        area_number=area_number
     )
     
     db_photo = crud.create_photo(db, photo_create)
@@ -124,7 +144,7 @@ async def get_all_photos(
     """
     Получение списка всех фото с пагинацией
     """
-    photos = db.query(models.Photo).offset(skip).limit(limit).all()
+    photos = db.query(models.Photo).order_by(models.Photo.id.desc()).offset(skip).limit(limit).all()
     return photos
 
 @app.get("/api/photo_ids")
@@ -264,15 +284,6 @@ async def get_map(db: Session = Depends(get_db)):
     return {"areas": areas}
 
 
-class BoundingBox(BaseModel):
-    x_min: float
-    y_min: float
-    x_max: float
-    y_max: float
-
-class BoundingBoxRequest(BaseModel):
-    photo_id: int
-    bounding_boxes: List[BoundingBox]
 
 @app.get("/api/photo/{photo_id}/draw_boxes")
 async def draw_bounding_boxes(
@@ -359,109 +370,346 @@ async def draw_bounding_boxes(
         response.release_conn()
 
 
-def draw_boxes_on_image(image: Image.Image, bounding_boxes: List[BoundingBox]) -> Image.Image:
+
+@app.get("/api/get_map_points")
+async def get_map_points(db: Session = Depends(get_db)):
     """
-    Отрисовывает bounding box'ы на изображении с подписями
-    Координаты в абсолютных значениях пикселей
+    Возвращает все точки (фото) для отображения на карте, с координатами и статистикой, если есть.
+    Формат ответа:
+    [
+        {
+            "photo_id": ...,
+            "latitude": ...,
+            "longitude": ...,
+            "area_number": ...,
+            "status": ...,
+            "statistics": {...} | null
+        },
+        ...
+    ]
     """
-    # Создаем копию изображения для рисования
-    image_copy = image.copy()
-    draw = ImageDraw.Draw(image_copy)
+    photos = db.query(models.Photo).all()
+    points = []
+    for photo in photos:
+        # Отдаем только если есть координаты
+        if photo.latitude is not None and photo.longitude is not None:
+            points.append({
+                "photo_id": photo.id,
+                "latitude": photo.latitude,
+                "longitude": photo.longitude,
+                "area_number": photo.area_number,
+                "status": photo.status,
+                "statistics": photo.statistics,
+            })
+    return points
+
+@app.get("/api/get_areas")
+async def get_areas():
+    """
+    Эндпоинт для получения всех ID областей и их координат (списка полигонов).
+    Возвращает:
+        Список словарей: { "area_id": ..., "area_name": ..., "coordinates": [...] }
+    """
+    return areas_info
+
+
+@app.get("/api/get_area_statistics/{area_id}")
+async def get_area_statistics(
+    area_id: int = Path(..., description="ID области"),
+    db: Session = Depends(get_db)
+):
+    """
+    Возвращает для заданной области (area_id) следующую информацию:
+    - Список идентификаторов всех фотографий, относящихся к данной области (photo_ids).
+    - Усреднённые значения статистик по всем фото в области (average_statistics), которые имеют рассчитанные статистики. 
+      Если таких фотографий нет, поле average_statistics будет равно null.
+
+    Позволяет использовать эти данные, например, для отображения средней статистики заболеваний по выбранной области
+    на карте или для фильтрации фотографий, относящихся к конкретному участку.
+
+    Формат ответа:
+    {
+        "area_id": <int>,                # ID выбранной области
+        "photo_ids": [<int>, ...],       # Массив идентификаторов фотографий, привязанных к этой области
+        "average_statistics": {          # Словарь с усреднёнными значениями статистик или null
+           ...                          # Пример: {"hollows": 0.24, "cracks": 0.61, ...}
+        } | null
+    }
+    """
+    # Получаем все фото в данной области
+    photos = db.query(models.Photo).filter(models.Photo.area_number == area_id).all()
+    photo_ids = [photo.id for photo in photos]
+
+    # Собираем статистики с непустых фото
+    statistics_list = [photo.statistics for photo in photos if photo.statistics is not None]
+
+    # Вычисляем усредненные статистики
+    average_statistics = None
+    if statistics_list:
+        average_statistics = statistics_processor.calculate_average_statistics(statistics_list)
+
+    return {
+        "area_id": area_id,
+        "photo_ids": photo_ids,
+        "average_statistics": average_statistics
+    }
+
+
+@app.post("/api/create_dataset", response_model=schemas.Dataset)
+async def create_dataset(
+    dataset: schemas.DatasetCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Создает новый датасет
+    """
+    db_dataset = crud.create_dataset(db, dataset)
+    return db_dataset
+
+
+@app.get("/api/datasets", response_model=List[schemas.Dataset])
+async def get_datasets(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """
+    Получает список всех датасетов с пагинацией
+    """
+    datasets = crud.get_datasets(db, skip=skip, limit=limit)
+    return datasets
+
+
+@app.get("/api/dataset/{dataset_id}", response_model=schemas.DatasetWithPhotos)
+async def get_dataset(
+    dataset_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Получает датасет по ID с ID всех фотографий в этом датасете
+    """
+    dataset = crud.get_dataset_with_photos(db, dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail=f"Dataset with id {dataset_id} not found")
     
-    # Параметры для рисования
-    box_colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'cyan', 'magenta']
-    box_width = 3
+    # Собираем ID фотографий из датасета
+    photo_ids = [dp.photo_id for dp in dataset.dataset_photos]
     
+    return schemas.DatasetWithPhotos(
+        id=dataset.id,
+        name=dataset.name,
+        description=dataset.description,
+        created_at=dataset.created_at,
+        photo_ids=photo_ids
+    )
+
+@app.post("/api/dataset/add_photo", response_model=schemas.AddPhotoToDatasetResponse)
+async def add_photo_to_dataset(
+    request: schemas.AddPhotoToDatasetRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Добавляет фото к датасету (создает связь между фото и датасетом)
+    """
+    # Проверяем существование датасета
+    dataset = crud.get_dataset(db, request.dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail=f"Dataset with id {request.dataset_id} not found")
+    
+    # Проверяем существование фото
+    photo = crud.get_photo(db, request.photo_id)
+    if not photo:
+        raise HTTPException(status_code=404, detail=f"Photo with id {request.photo_id} not found")
+    
+    # Добавляем связь
+    crud.add_photo_to_dataset(db, request.dataset_id, request.photo_id)
+    
+    return schemas.AddPhotoToDatasetResponse(
+        message="Photo successfully added to dataset",
+        dataset_id=request.dataset_id,
+        photo_id=request.photo_id
+    )
+
+@app.put("/api/photo/{photo_id}/statistics", response_model=schemas.UpdatePhotoStatisticsResponse)
+async def update_photo_statistics(
+    photo_id: int,
+    request: schemas.UpdatePhotoStatisticsRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Обновляет статистики фото по его ID
+    """
+    # Проверяем существование фото
+    photo = crud.get_photo(db, photo_id)
+    if not photo:
+        raise HTTPException(status_code=404, detail=f"Photo with id {photo_id} not found")
+    
+    # Обновляем статистики
+    crud.update_photo_statistics(db, photo_id, request.statistics)
+
+    # Обновляем статус на "annotated"
+    crud.update_photo_status(db, photo_id, "annotated")
+    
+    return schemas.UpdatePhotoStatisticsResponse(
+        message="Photo statistics successfully updated",
+        photo_id=photo_id
+    )
+
+@app.post("/api/dataset/{dataset_id}/train", response_model=schemas.TrainModelResponse)
+async def train_model_on_dataset(
+    dataset_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Запускает дообучение моделей по датасету.
+    Извлекает все фото из базы данных, скачивает из MinIO и отправляет в сервис моделей.
+    """
+    # Проверяем существование датасета
+    dataset = crud.get_dataset_with_photos(db, dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail=f"Dataset with id {dataset_id} not found")
+    
+    if not dataset.dataset_photos:
+        raise HTTPException(status_code=400, detail=f"Dataset {dataset_id} has no photos")
+    
+    # Запускаем обучение в фоне
+    background_tasks.add_task(train_model_background, dataset_id, dataset, db)
+    
+    return schemas.TrainModelResponse(
+        message=f"Model training started for dataset {dataset_id}",
+        dataset_id=dataset_id,
+        photos_count=len(dataset.dataset_photos)
+    )
+
+
+async def train_model_background(dataset_id: int, dataset, db: Session):
+    """
+    Фоновая задача для дообучения модели.
+    
+    Args:
+        dataset_id: ID датасета
+        dataset: Объект датасета с фотографиями
+        db: Сессия базы данных
+    """
     try:
-        # Пытаемся загрузить шрифт
+        # Используем ID датасета в качестве имени
+        dataset_name = str(dataset_id)
+        
+        print(f"=== Starting model training for dataset {dataset_id} ===")
+        
+        # 1. Создаем датасет в сервисе моделей
         try:
-            # Попробуем разные варианты шрифтов
-            font_paths = [
-                "arial.ttf",
-                "Arial.ttf",
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
-            ]
-            font = None
-            for font_path in font_paths:
-                try:
-                    font = ImageFont.truetype(font_path, 24)
-                    break
-                except:
-                    continue
-            if font is None:
-                font = ImageFont.load_default()
-        except:
-            font = ImageFont.load_default()
-    except:
-        font = None
-    
-    for i, bbox in enumerate(bounding_boxes):
-        # Конвертируем координаты в целые числа
-        x_min = int(bbox["x_min"])
-        y_min = int(bbox["y_min"])
-        x_max = int(bbox["x_max"])
-        y_max = int(bbox["y_max"])
+            await model_api.create_dataset(
+                name=dataset_name,
+                description=f"Dataset {dataset_id}"
+            )
+            print(f"Dataset {dataset_name} created in model service")
+        except Exception as e:
+            print(f"Error creating dataset (may already exist): {e}")
         
-        # Проверяем валидность координат
-        img_width, img_height = image_copy.size
-        if x_min < 0 or y_min < 0 or x_max > img_width or y_max > img_height:
-            # Если координаты выходят за границы, логируем но продолжаем
-            print(f"Warning: Bounding box {i} coordinates out of image bounds")
-            # Ограничиваем координаты границами изображения
-            x_min = max(0, min(x_min, img_width))
-            y_min = max(0, min(y_min, img_height))
-            x_max = max(0, min(x_max, img_width))
-            y_max = max(0, min(y_max, img_height))
+        # 2. Скачиваем все фото из MinIO и загружаем в сервис
+        files_bytes = []
+        filenames = []
+        statistics_data = {}
         
-        # Выбираем цвет для текущего бокса
-        color = box_colors[i % len(box_colors)]
-        
-        # Рисуем прямоугольник
-        draw.rectangle([x_min, y_min, x_max, y_max], outline=color, width=box_width)
-        
-        # Подпись с номером бокса
-        label = str(i + 1)
-        
-        # Определяем размеры текста
-        if font:
+        for dataset_photo in dataset.dataset_photos:
+            photo = dataset_photo.photo
             try:
-                text_bbox = draw.textbbox((0, 0), label, font=font)
-                text_width = text_bbox[2] - text_bbox[0]
-                text_height = text_bbox[3] - text_bbox[1]
-            except:
-                # Fallback для старых версий PIL
-                text_width, text_height = 20, 20
-        else:
-            text_width, text_height = 20, 20
+                # Скачиваем файл из MinIO в память
+                file_obj = minio_client.get_image_file(photo.filename)
+                file_bytes = file_obj.read()
+                file_obj.close()
+                file_obj.release_conn()
+                
+                files_bytes.append(file_bytes)
+                filenames.append(photo.filename)
+                
+                # Собираем статистики для каждого фото
+                if photo.statistics:
+                    statistics_data[photo.filename] = photo.statistics
+                    
+                print(f"Downloaded photo {photo.filename} from MinIO")
+            except Exception as e:
+                print(f"Error downloading photo {photo.id}: {e}")
+                continue
         
-        # Позиция для текста (левый верхний угол бокса)
-        text_x = x_min
-        text_y = y_min - text_height - 5
+        # 3. Загружаем фото в датасет на сервисе моделей
+        if files_bytes:
+            try:
+                result = await model_api.upload_images_to_dataset(
+                    dataset_name=dataset_name,
+                    files=files_bytes,
+                    filenames=filenames
+                )
+                print(f"Uploaded {len(files_bytes)} images to model service")
+                print(f"Upload result: {result}")
+            except Exception as e:
+                print(f"Error uploading images to model service: {e}")
+                raise
         
-        # Если текст выходит за верхнюю границу, размещаем внутри бокса
-        if text_y < 0:
-            text_y = y_min + 5
+        # 4. Отправляем статистики как JSON файл
+        if statistics_data:
+            try:
+                # Создаем JSON файл со статистиками
+                statistics_json = json.dumps(statistics_data, ensure_ascii=False, indent=2)
+                statistics_bytes = statistics_json.encode('utf-8')
+                
+                result = await model_api.upload_dataset_annotations(
+                    dataset_name=dataset_name,
+                    annotation_files=[statistics_bytes],
+                    filenames=["statistics.json"]
+                )
+                print(f"Uploaded statistics to model service")
+                print(f"Statistics upload result: {result}")
+            except Exception as e:
+                print(f"Error uploading statistics: {e}")
         
-        # Рисуем фон для текста
-        draw.rectangle(
-            [text_x - 2, text_y - 2, text_x + text_width + 2, text_y + text_height + 2],
-            fill=color
-        )
+        # 5. Запускаем дообучение
+        try:
+            result = await model_api.train_model(dataset_name=dataset_name)
+            print(f"Model training started successfully")
+            print(f"Training result: {result}")
+        except Exception as e:
+            print(f"Error starting model training: {e}")
+            raise
         
-        # Рисуем текст
-        if font:
-            draw.text((text_x, text_y), label, fill='white', font=font)
-        else:
-            draw.text((text_x, text_y), label, fill='white')
-    
-    return image_copy
-    
+        print(f"=== Model training completed for dataset {dataset_id} ===")
+        
+    except Exception as e:
+        print(f"Error in train_model_background: {e}")
+        # В случае ошибки можно было бы обновить статус датасета, если такой функционал есть
+        raise
 
-@app.get("/")
-async def root():
-    return {"message": "Plant Disease Detection Service"}
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+DISEASES_LIST = [
+    'Березовый трутовик', 'Вертициллезное увядание', 'Голландская болезнь вяза',
+    'Другое', 'Естественное отмирание ветвей', 'Здоров', 'Комплексное усыхание',
+    'Корневая губка', 'Корневая или комлевая гниль', 'Механическое повреждение ствола',
+    'Мучнистая роса', 'Рак', 'Ржавчина', 'Стволовая гниль', 'Фитофтороз', 'Халаровый некроз',
+    'Ядровая гниль вызванная дереворазрушающими грибами'
+]
+
+SPECIES_LIST = [
+    'Берёза повислая', 'Боярышник однопестичный', 'Вишня обыкновенная', 'Вяз гладкий', 
+    'Другой', 'Дуб красный', 'Дуб черешчатый', 'Дёрен пестролистный', 'Ель европейская',
+    'Ива плакучая', 'Каштан конский', 'Кизильник блестящий', 'Клён платановидный',
+    'Клён явор', 'Липа крупнолистная', 'Липа мелколистная', 'Липа сердцевидная', 
+    'Осина', 'Рябина обыкновенная', 'Сирень обыкновенная', 'Сосна', 'Спирея',
+    'Тополь', 'Тополь белый', 'Черёмуха обыкновенная', 'Чубушник венечный', 
+    'Яблоня садовая', 'Ясень обыкновенный'
+]
+
+@app.get("/diseases", response_model=List[str], summary="Получить список болезней")
+def get_diseases():
+    """
+    Возвращает список всех возможных болезней деревьев
+    """
+    return DISEASES_LIST
+
+@app.get("/species", response_model=List[str], summary="Получить список видов деревьев") 
+def get_species():
+    """
+    Возвращает список всех возможных видов деревьев
+    """
+    return SPECIES_LIST

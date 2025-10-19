@@ -10,3 +10,7 @@ python-magic==0.4.27
 pydantic_settings
 requests
 pillow
+pandas
+openpyxl
+httpx
+aiofiles

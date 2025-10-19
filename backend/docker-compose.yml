@@ -46,7 +46,7 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_3:/var/lib/postgresql/data
     ports:
       - "5500:5432"
     networks:
@@ -79,7 +79,7 @@ services:
       retries: 3
 
 volumes:
-  postgres_data:
+  postgres_data_3:
   minio_data:
 
 networks:

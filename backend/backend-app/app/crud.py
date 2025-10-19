@@ -87,3 +87,72 @@ def get_all_photos(db: Session, skip: int = 0, limit: int = 100):
     Получает все фото с пагинацией
     """
     return db.query(models.Photo).offset(skip).limit(limit).all()
+
+def add_photo_to_dataset(db: Session, dataset_id: int, photo_id: int):
+    """
+    Добавляет фото к датасету
+    """
+    # Проверяем, существует ли уже такая связь
+    existing = db.query(models.DatasetPhoto).filter(
+        models.DatasetPhoto.dataset_id == dataset_id,
+        models.DatasetPhoto.photo_id == photo_id
+    ).first()
+    
+    if existing:
+        return existing
+    
+    dataset_photo = models.DatasetPhoto(
+        dataset_id=dataset_id,
+        photo_id=photo_id
+    )
+    db.add(dataset_photo)
+    db.commit()
+    db.refresh(dataset_photo)
+    return dataset_photo
+
+def update_photo_statistics(db: Session, photo_id: int, statistics: dict):
+    """
+    Обновляет статистики фото
+    """
+    db_photo = get_photo(db, photo_id)
+    if db_photo:
+        db_photo.statistics = statistics
+        db.commit()
+        db.refresh(db_photo)
+    return db_photo
+
+def get_dataset(db: Session, dataset_id: int):
+    """
+    Получает датасет по ID
+    """
+    return db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+
+def get_dataset_with_photos(db: Session, dataset_id: int):
+    """
+    Получает датасет со всеми связанными фотографиями
+    """
+    return db.query(models.Dataset).\
+        filter(models.Dataset.id == dataset_id).\
+        options(
+            sqlalchemy.orm.joinedload(models.Dataset.dataset_photos).
+            joinedload(models.DatasetPhoto.photo)
+        ).first()
+
+def create_dataset(db: Session, dataset: schemas.DatasetCreate):
+    """
+    Создает новый датасет
+    """
+    db_dataset = models.Dataset(
+        name=dataset.name,
+        description=dataset.description
+    )
+    db.add(db_dataset)
+    db.commit()
+    db.refresh(db_dataset)
+    return db_dataset
+
+def get_datasets(db: Session, skip: int = 0, limit: int = 100):
+    """
+    Получает список всех датасетов
+    """
+    return db.query(models.Dataset).offset(skip).limit(limit).all()
