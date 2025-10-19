@@ -1,3 +1,10 @@
+"""
+Модуль `gemini_annotation.py` предназначен для автоматической разметки изображений с использованием
+мультимодальной модели Google Gemini. Он загружает изображения из указанной директории,
+отправляет их в Gemini для анализа и сохраняет полученные аннотации в формате JSON.
+Скрипт также поддерживает дозагрузку, избегая повторной обработки уже размеченных изображений.
+"""
+
 import os
 import json
 import time
@@ -5,31 +12,28 @@ import typing
 import enum
 
 from PIL import Image
-import google.genai as genai
-from google.genai import types
+import google.generativeai as genai  # Изменено на google.generativeai
+from google.generativeai import types  # Изменено на google.generativeai.types
 
 from dotenv import load_dotenv
 
-# --- Шаг 1: Конфигурация и константы ---
+# --- Конфигурация и константы ---
 
-load_dotenv()
+load_dotenv() # Загружаем переменные окружения из файла .env
 
 GEMINI_API_KEY = os.getenv('GEMINI_KEY')
-# Как вы и просили, используем лучшую доступную модель
-MODEL_NAME = "gemini-2.5-flash"
-# MODEL_NAME = "gemini-2.5-pro"
-IMAGE_DIRECTORY = 'crops_dataset/crops/'
-# Имя файла для красивого, отформатированного JSON
-OUTPUT_FILENAME = 'result.json'
-NUM_FILES_TO_PROCESS = 50
-start_idx = 0
-API_REQUEST_DELAY_SECONDS = 3
-MAX_RETRIES = 3
+MODEL_NAME = "gemini-2.5-flash"  # Используемая модель Gemini
+IMAGE_DIRECTORY = 'crops_dataset/crops/'  # Директория с изображениями для разметки
+OUTPUT_FILENAME = 'result.json'  # Имя файла для сохранения результатов аннотации
+NUM_FILES_TO_PROCESS = 50  # Количество файлов для обработки за один запуск (для ограничения)
+START_INDEX = 0  # Начальный индекс файла для обработки из списка
+API_REQUEST_DELAY_SECONDS = 3  # Задержка между запросами к API Gemini во избежание превышения лимитов
+MAX_RETRIES = 3  # Максимальное количество попыток отправки запроса в случае ошибки
 
-# --- Шаг 2: Определение схемы ответа ---
-# Схема не изменилась, она по-прежнему актуальна.
+# --- Определение схемы ответа (TypedDict и Enum для структурированного JSON) ---
 
 class Disease(enum.Enum):
+    """Перечисление возможных болезней растений."""
     STEM_ROT = "стволовая гниль"
     COMPLEX_DRYING = "комплексное усыхание"
     DUTCH_ELM_DISEASE = "голландская болезнь вяза"
@@ -51,14 +55,17 @@ class Disease(enum.Enum):
 
 
 class SpeciesProbability(typing.TypedDict):
+    """Схема для вероятности определения вида растения."""
     species: str
     probability: float
 
 class DiseaseProbability(typing.TypedDict):
+    """Схема для вероятности определения болезни."""
     disease: Disease
     probability: float
 
 class Annotation(typing.TypedDict):
+    """Основная схема для аннотации одного объекта (растения) на изображении."""
     plant_class: str
     species_probabilities: typing.List[SpeciesProbability]
     stem_rot: float
@@ -71,9 +78,11 @@ class Annotation(typing.TypedDict):
     dry_branches_percentage: int
 
 class AnalysisResult(typing.TypedDict):
+    """Схема для полного результата анализа одного изображения."""
     img_url: str
     annotations: typing.List[Annotation]
 
+# Системные инструкции для модели Gemini, определяющие её роль и формат ответа.
 SYSTEM_INSTRUCTION = """
 Ты — эксперт-арборист и фитопатолог. Проведи детальный анализ фотографии городских зеленых насаждений.
 Твоя задача — вернуть JSON.
@@ -104,112 +113,162 @@ SYSTEM_INSTRUCTION = """
 Вся текстовая информация в ответе должна быть на русском языке.
 """
 
-# --- Шаг 3: Основная функция для анализа изображения ---
-
-def analyze_image_with_gemini(image_path: str) -> list | None:
+def analyze_image_with_gemini(image_path: str) -> typing.List[Annotation] | None:
     """
-    Анализирует изображение и возвращает список аннотаций.
+    Отправляет изображение в модель Gemini для анализа и получения структурированных аннотаций.
+
+    Args:
+        image_path (str): Путь к изображению для анализа.
+
+    Returns:
+        typing.List[Annotation] | None: Список аннотаций, если запрос успешен,
+                                     иначе None в случае ошибок или неудачных попыток.
     """
     print(f"Загрузка изображения: {image_path}...")
     try:
+        # Открываем изображение с помощью PIL (Pillow)
         img = Image.open(image_path)
     except IOError as e:
-        print(f"Ошибка: Не удалось загрузить изображение. {e}")
+        print(f"Ошибка: Не удалось загрузить изображение по пути '{image_path}'. {e}")
         return None
 
+    # Конфигурация для инструмента Google Search (хотя в данном случае не используется напрямую)
     grounding_tool = types.Tool(
         google_search=types.GoogleSearch()
     )
+
+    # Настройка генерации контента для модели Gemini
     generation_config = {
-        "temperature": 0.1,
-        "system_instruction": SYSTEM_INSTRUCTION,
-        "tools": [grounding_tool],
-        "response_schema": Annotation,
+        "temperature": 0.1,  # Температура для предсказуемости ответов (0.1 - более детерминированный)
+        "system_instruction": SYSTEM_INSTRUCTION,  # Системные инструкции, определяющие роль и формат.
+        "tools": [grounding_tool],  # Список доступных инструментов
+        "response_schema": Annotation,  # Ожидаемая схема ответа в формате TypedDict
     }
 
     for attempt in range(MAX_RETRIES):
-        client = genai.Client(api_key=GEMINI_API_KEY)
+        # Инициализация клиента Gemini API на каждой попытке, чтобы избежать потенциальных проблем с соединениями
+        genai.configure(api_key=GEMINI_API_KEY) # Конфигурация API ключа
+        client = genai.GenerativeModel(model_name=MODEL_NAME) # Использование GenerativeModel
         try:
             print(f"Отправка запроса в модель {MODEL_NAME} (попытка {attempt + 1}/{MAX_RETRIES})...")
-            response = client.models.generate_content(
-                model=MODEL_NAME,
+            response = client.generate_content(
                 contents=[img],
-                config=generation_config,
+                generation_config=generation_config,
             )
-            print(response.text)
             
-            # Извлекаем только JSON-часть из ответа, убирая ```json и ```
-            json_string = response.text.strip().strip('`').lstrip('json').strip()
+            # Выводим полный текст ответа для отладки
+            # print(response.text)
             
+            # Извлекаем только JSON-часть из ответа, удаляя маркдаун-блоки
+            json_string = response.text.strip()
+            if json_string.startswith("```json") and json_string.endswith("```"):
+                json_string = json_string[len("```json"): -len("```")].strip()
+            elif json_string.startswith("`") and json_string.endswith("`"):
+                json_string = json_string[1:-1].strip()
+
+            # Декодируем JSON-строку в Python-объект
             return json.loads(json_string)
 
         except json.JSONDecodeError as e:
-            print(f"Ошибка декодирования JSON: {e}")
+            print(f"Ошибка декодирования JSON в ответе модели: {e}")
             print(f"Полученный текст ответа: {response.text if 'response' in locals() else 'Ответ не получен'}")
-            return None
-        
         except Exception as e:
-            print(f"Произошла непредвиденная ошибка: {e}")
-            return None
+            print(f"Произошла непредвиденная ошибка при запросе к Gemini: {e}")
+        
+        # Если это не последняя попытка, ждем перед повтором
+        if attempt < MAX_RETRIES - 1:
+            time.sleep(API_REQUEST_DELAY_SECONDS)
 
+    print(f"Не удалось получить валидный ответ от Gemini после {MAX_RETRIES} попыток.")
     return None
 
 
-def load_previous_results(filename: str) -> tuple[list, set]:
+def load_previous_results(filename: str) -> typing.Tuple[typing.List[AnalysisResult], typing.Set[str]]:
     """
-    Загружает предыдущие результаты из JSON-файла.
-    Возвращает список всех результатов и множество URL уже обработанных изображений.
+    Загружает ранее сохраненные результаты аннотации из JSON-файла.
+    
+    Args:
+        filename (str): Путь к JSON-файлу с предыдущими результатами.
+
+    Returns:
+        typing.Tuple[typing.List[AnalysisResult], typing.Set[str]]: Кортеж, содержащий:
+            - Список всех загруженных результатов анализа (AnalysisResult).
+            - Множество URL изображений, которые уже были обработаны.
+            Если файл не найден, поврежден или имеет неверный формат, возвращает пустые структуры.
     """
     if not os.path.exists(filename):
         return [], set()
     
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            # Считываем весь файл как один JSON-объект (который должен быть списком)
             all_results = json.load(f)
             if not isinstance(all_results, list):
-                print(f"Предупреждение: Файл {filename} имеет неверный формат (не является списком). Начинаем с чистого листа.")
+                print(f"Предупреждение: Файл '{filename}' имеет неверный формат (не является списком). Начинаем с чистого листа.")
                 return [], set()
 
+            # Извлекаем URL всех уже обработанных изображений для быстрого поиска
             processed_urls = {res.get('img_url') for res in all_results if 'img_url' in res}
             return all_results, processed_urls
-    except (json.JSONDecodeError, IOError):
-        print(f"Предупреждение: Файл {filename} поврежден или пуст. Начинаем с чистого листа.")
+    except (json.JSONDecodeError, IOError) as e:
+        print(f"Предупреждение: Файл '{filename}' поврежден или недоступен ({e}). Начинаем с чистого листа.")
         return [], set()
 
+def save_results(results_list: typing.List[AnalysisResult], filename: str):
+    """
+    Сохраняет список результатов анализа в JSON-файл с красивым форматированием.
 
-# --- Шаг 4: Основной цикл выполнения ---
+    Args:
+        results_list (typing.List[AnalysisResult]): Список результатов для сохранения.
+        filename (str): Путь к файлу, в который будут сохранены результаты.
+    """
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(results_list, f, ensure_ascii=False, indent=2)
+        print(f"Результаты успешно сохранены в '{filename}'")
+    except IOError as e:
+        print(f"Критическая ошибка: Не удалось записать в файл '{filename}'. {e}")
+
+# --- Основной цикл выполнения скрипта ---
 
 if __name__ == "__main__":
+    # Проверяем наличие API ключа
     if not GEMINI_API_KEY:
-        print("Критическая ошибка: Переменная окружения GEMINI_API_KEY не установлена.")
-        exit()
+        print("Критическая ошибка: Переменная окружения 'GEMINI_KEY' не установлена. Пожалуйста, укажите API ключ Gemini в файле .env.")
+        exit(1) # Выход с кодом ошибки
 
+    # Проверяем доступность директории с изображениями
     if not os.path.isdir(IMAGE_DIRECTORY):
-        print(f"Критическая ошибка: Директория с изображениями '{IMAGE_DIRECTORY}' не найдена.")
-        exit()
+        print(f"Критическая ошибка: Директория с изображениями '{IMAGE_DIRECTORY}' не найдена. Проверьте путь.")
+        exit(1)
 
-    image_files = sorted([f for f in os.listdir(IMAGE_DIRECTORY) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
+    # Получаем список всех изображений в директории
+    image_files = sorted([
+        f for f in os.listdir(IMAGE_DIRECTORY)
+        if f.lower().endswith(('.png', '.jpg', '.jpeg'))
+    ])
 
     total_files = len(image_files)
     print(f"Найдено {total_files} изображений для обработки.")
 
-    # Загружаем все предыдущие результаты в память
+    # Загружаем предыдущие результаты, чтобы не обрабатывать одно и то же изображение дважды
     all_analysis_results, processed_image_urls = load_previous_results(OUTPUT_FILENAME)
-    print(f"Найдено {len(processed_image_urls)} уже обработанных изображений.")
+    print(f"Найдено {len(processed_image_urls)} изображений, уже обработанных ранее.")
     
-    processed = 0
-    for i, filename in enumerate(image_files[start_idx:]):
+    files_processed_this_run = 0
+    # Итерируемся по изображениям, начиная с указанного индекса
+    for i, filename in enumerate(image_files[START_INDEX:]):
         full_path = os.path.join(IMAGE_DIRECTORY, filename)
         
+        # Проверяем, было ли изображение уже обработано
         if full_path in processed_image_urls:
-            print(f"[{i+1}/{total_files}] Пропуск: {full_path} (уже обработан).")
+            print(f"[{START_INDEX + i + 1}/{total_files}] Пропуск: '{full_path}' (уже обработан ранее).")
             continue
         
-        print(f"--- [{i+1}/{total_files}] Обработка: {full_path} ---")
+        print(f"--- [{START_INDEX + i + 1}/{total_files}] Обработка изображения: '{full_path}' ---")
         annotations_list = analyze_image_with_gemini(full_path)
         
         if annotations_list is not None:
+            # Формируем итоговый объект результата
             final_result = {
                 'img_url': full_path,
                 'annotations': annotations_list
@@ -218,23 +277,23 @@ if __name__ == "__main__":
             # Добавляем новый результат в общий список
             all_analysis_results.append(final_result)
             
-            # Перезаписываем весь файл с красивым форматированием
-            try:
-                with open(OUTPUT_FILENAME, 'w', encoding='utf-8') as f:
-                    # json.dump с параметром indent=2 делает JSON читаемым
-                    json.dump(all_analysis_results, f, ensure_ascii=False, indent=2)
-                print(f"Результат для {full_path} успешно сохранен в {OUTPUT_FILENAME}")
-            except IOError as e:
-                print(f"Критическая ошибка: Не удалось записать в файл {OUTPUT_FILENAME}. {e}")
-            processed += 1
-            if processed == NUM_FILES_TO_PROCESS:
+            # Сохраняем все результаты в JSON файл
+            save_results(all_analysis_results, OUTPUT_FILENAME)
+            files_processed_this_run += 1
+
+            # Прерываем обработку, если достигнут лимит файлов за один запуск
+            if NUM_FILES_TO_PROCESS and files_processed_this_run >= NUM_FILES_TO_PROCESS:
+                print(f"Достигнут лимит на количество обрабатываемых файлов ({NUM_FILES_TO_PROCESS}). Завершение работы.")
                 break
-
         else:
-            print(f"Не удалось получить результат для {full_path}. Файл пропущен.")
-            break
+            print(f"Не удалось получить валидные аннотации для '{full_path}'. Файл пропущен.")
+            # Если возникла проблема, возможно, стоит остановиться или пропустить несколько файлов
+            # Здесь можно добавить логику для пропуска нескольких файлов перед остановкой
+            # или для увеличения задержки.
+            # break # Закомментировано, чтобы не останавливать весь процесс из-за одной ошибки
 
-        if i < total_files - 1:
+        # Задержка между запросами к API
+        if (START_INDEX + i + 1) < total_files:
             time.sleep(API_REQUEST_DELAY_SECONDS)
 
-    print(f"\nОбработка завершена. Все результаты сохранены в {OUTPUT_FILENAME}")
+    print(f"\nОбработка завершена. Все обработанные результаты сохранены в '{OUTPUT_FILENAME}'.")
