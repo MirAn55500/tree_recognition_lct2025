@@ -16,7 +16,7 @@ const Grid = <T,>({ data, key, render, className }: GridProps<T>) => {
             {data && data.length > 0 && (
                 <Row gutter={[16, 16]} className={`grid-container ${className ?? ""}`}>
                     {data.map((item, index) => (
-                        <Col span={8} key={key ? (item[key] as Key) : index}>
+                        <Col span={8} key={key && item[key] ? (item[key] as Key) : index}>
                             {render(item)}
                         </Col>
                     ))}

@@ -1,11 +1,10 @@
-import { Flex, Image } from "antd";
+import { Flex } from "antd";
 import { Annotorious } from "@annotorious/react";
 
 import "./ImageWithStatics.css";
 import "@annotorious/react/annotorious-react.css";
 
-import AnnotationPhoto from "./AnnotationPhoto/AnnotationPhoto";
-import { useGetPhotoStatusQuery } from "@services/api/photo.api";
+import ImageWrapper from "./ImageWrapper";
 
 interface ImageWithStaticsProps {
     src: string;
@@ -13,27 +12,11 @@ interface ImageWithStaticsProps {
 }
 
 const ImageWithStatics: React.FC<ImageWithStaticsProps> = ({ src, item }) => {
-    const { data: photoStatus } = useGetPhotoStatusQuery(item, {
-        refetchOnMountOrArgChange: true,
-    });
-
     return (
         <Flex className="image-container">
-            <Image
-                preview={{
-                    imageRender: () => (
-                        <Annotorious>
-                            <AnnotationPhoto
-                                src={src}
-                                statistics={photoStatus?.statistics}
-                                id={item}
-                            />
-                        </Annotorious>
-                    ),
-                    toolbarRender: () => <></>,
-                }}
-                src={src}
-            />
+            <Annotorious>
+                <ImageWrapper src={src} item={item} />
+            </Annotorious>
         </Flex>
     );
 };
