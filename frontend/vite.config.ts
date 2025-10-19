@@ -7,12 +7,14 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
+            ymaps3: path.resolve(__dirname, "node_modules/@yandex/ymaps3-types"),
             "@contexts": path.resolve(__dirname, "src/contexts"),
             "@common": path.resolve(__dirname, "src/common"),
-            "@types": path.resolve(__dirname, "src/types"),
+            "#types": path.resolve(__dirname, "src/types"),
             "@hooks": path.resolve(__dirname, "src/hooks"),
             "@services": path.resolve(__dirname, "src/services"),
             "@utils": path.resolve(__dirname, "src/utils"),
+            "@libs": path.resolve(__dirname, "src/libs/*"),
         },
     },
 });

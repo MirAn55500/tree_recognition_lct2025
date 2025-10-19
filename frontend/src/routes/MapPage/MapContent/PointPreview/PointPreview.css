@@ -1,0 +1,52 @@
+.point-preview {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.point-preview-photo-wrapper {
+    width: 65%;
+}
+
+.point-preview-statistics {
+    width: 35%;
+}
+
+.point-preview-photo-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.point-preview-photo {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.point-preview-photo img,
+.point-preview-photo-wrapper img {
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+}
+
+.point-preview-statistics {
+    padding: 12px;
+    box-sizing: border-box;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.point-preview-statistics > * {
+    flex: 0 0 auto;
+}
+
+.point-preview .statistics-card {
+    max-width: unset;
+}

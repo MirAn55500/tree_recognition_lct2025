@@ -1,0 +1,46 @@
+.annotation-editor-wrapper {
+    width: 400px;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.annotation-editor-wrapper .ant-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    min-height: 0;
+}
+
+.annotation-collapse-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.annotation-collapse-container .ant-collapse-item {
+    margin-bottom: 8px;
+}
+
+.annotation-collapse-container .ant-collapse-item:last-child {
+    margin-bottom: 0;
+}
+
+.annotation-collapse-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.annotation-collapse-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.annotation-collapse-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.annotation-collapse-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

@@ -1,0 +1,42 @@
+.mps-popover {
+    padding: 8px;
+    max-height: 360px;
+    overflow: auto;
+    width: 420px;
+}
+
+.mps-inner {
+    background: white;
+    padding: 8px;
+}
+
+.mps-item {
+    cursor: pointer;
+    position: relative;
+}
+
+.mps-img {
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+}
+
+.mps-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.mps-trigger {
+    width: 100%;
+    text-align: left;
+}

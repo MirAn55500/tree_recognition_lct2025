@@ -30,7 +30,7 @@ const beforeUpload = (_file: RcFile, fileList: RcFile[]) => {
 };
 
 const itemRenderCallback =
-    (field: string) =>
+    (field?: string) =>
     (
         _originNode: React.ReactElement,
         file: UploadFile,
@@ -48,9 +48,11 @@ const itemRenderCallback =
                 gap="20px"
                 style={{ width: "100%", marginTop: "10px" }}
             >
-                <Form.Item name={[field, file.uid]} style={{ flex: 1, margin: 0 }}>
-                    <InputGeoposition fullWidth />
-                </Form.Item>
+                {field && (
+                    <Form.Item name={[field, file.uid]} style={{ flex: 1, margin: 0 }}>
+                        <InputGeoposition fullWidth />
+                    </Form.Item>
+                )}
                 <Flex align="center" gap="8px" style={{ flex: 2 }}>
                     <FileImageOutlined />
                     <Text>{file.name}</Text>
@@ -62,7 +64,7 @@ const itemRenderCallback =
         );
     };
 
-export const uploaderProps = (field: string): UploadProps => ({
+export const uploaderProps = (field?: string): UploadProps => ({
     name: "file",
     multiple: true,
     accept: "image/*",

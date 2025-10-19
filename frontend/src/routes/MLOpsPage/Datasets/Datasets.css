@@ -1,0 +1,8 @@
+.datasets-list {
+    flex-direction: column;
+}
+
+.datasets-toolbar {
+    align-items: center;
+    justify-content: space-between;
+}

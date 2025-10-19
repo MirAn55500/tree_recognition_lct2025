@@ -1,0 +1,43 @@
+.dataset {
+    height: 100%;
+}
+
+.dataset:hover {
+    box-shadow: 0px 0px 7px 0px rgba(34, 60, 80, 0.1);
+}
+
+.dataset .ant-card-body {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dataset .ant-card-head {
+    display: flex;
+    align-items: center;
+    min-height: auto;
+    padding: 0 16px;
+    gap: 16px;
+}
+
+.dataset .ant-card-head-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+}
+
+.dataset .ant-card-head-title {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.dataset .ant-card-extra {
+    flex-shrink: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}

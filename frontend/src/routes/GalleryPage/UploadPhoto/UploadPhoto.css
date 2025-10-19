@@ -1,9 +1,3 @@
-.upload-photo-page {
-    padding: var(--page-containter-pading);
-    flex: 1;
-    flex-direction: column;
-}
-
 .upload-photo-header h3 {
     margin: 0 !important;
 }

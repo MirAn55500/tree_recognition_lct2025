@@ -31,32 +31,28 @@ const AnnotationPhoto: React.FC<AnnotationPhotoProps> = ({ src, statistics, id }
                 url: src,
             },
             prefixUrl: "/openseadragon-images/",
+            gestureSettingsMouse: {
+                clickToZoom: false,
+                dblClickToZoom: false,
+            },
         }),
         [src]
     );
 
     useEffect(() => {
-        console.log(statistics?.results);
         if (annotator && statistics && statistics.results) {
             annotator.setAnnotations(
                 statistics.results.flatMap((annotation) => generateAnnotation(id, annotation)),
                 true
             );
-
-            console.log("GOT", annotator.getAnnotations());
         }
     }, [annotator, statistics]);
 
     return (
-        <>
-            <OpenSeadragonAnnotator
-                drawingEnabled={false}
-                userSelectAction={UserSelectAction.SELECT}
-            >
-                <OpenSeadragonViewer options={viewerOptions} className="osd" />
-                <OpenSeadragonAnnotationPopup popup={(props) => <AnnotationPopup {...props} />} />
-            </OpenSeadragonAnnotator>
-        </>
+        <OpenSeadragonAnnotator drawingEnabled={false} userSelectAction={UserSelectAction.SELECT}>
+            <OpenSeadragonViewer options={viewerOptions} className="osd" />
+            <OpenSeadragonAnnotationPopup popup={(props) => <AnnotationPopup {...props} />} />
+        </OpenSeadragonAnnotator>
     );
 };
 

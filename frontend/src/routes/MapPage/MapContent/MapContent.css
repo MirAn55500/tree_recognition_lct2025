@@ -1,0 +1,10 @@
+.modal-polygon-preview,
+.modal-point-preview {
+    width: 100% !important;
+    height: 100%;
+}
+
+.modal-polygon-preview .ant-modal-body,
+.modal-point-preview .ant-modal-body {
+    display: flex;
+}

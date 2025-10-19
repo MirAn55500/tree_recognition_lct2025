@@ -1,14 +1,3 @@
-.research-view-container {
-    padding: var(--page-containter-pading);
-    flex: 1;
-    flex-direction: column;
-}
-
-.research-view-header h3,
-.research-view-header h5 {
-    margin: 0 !important;
-}
-
 .research-view-header {
     flex-direction: column;
     justify-content: center;
@@ -34,7 +23,12 @@
     flex-shrink: 0;
 }
 
-.research-statistics {
+.research-description h4 {
+    margin-bottom: 20px !important;
+}
+
+.research-statistics,
+.research-gallery {
     margin-top: 20px;
 }
 

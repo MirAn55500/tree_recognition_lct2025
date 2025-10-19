@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import type {
+    PhotoAnnotation,
     PhotoIdsResponse,
     PhotoItem,
     PhotoStatusResponse,
@@ -39,6 +40,7 @@ export const photoApi = createApi({
         }),
         getPhotoStatus: build.query<PhotoStatusResponse, number>({
             query: (id) => `photo_status/${id}`,
+            providesTags: (_result, _error, id) => [{ type: "Photo", id }],
         }),
         getPhotoIds: build.query<PhotoIdsResponse, void>({
             query: () => `photo_ids`,
@@ -46,6 +48,24 @@ export const photoApi = createApi({
         }),
         getPhotosFull: build.query<PhotoItem[], void>({
             query: () => `photos`,
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({ type: "Photo" as const, id })),
+                          { type: "Photo", id: "LIST" },
+                      ]
+                    : [{ type: "Photo", id: "LIST" }],
+        }),
+        updatePhotoStatistics: build.mutation<
+            void,
+            { id: number; filename?: string; results: PhotoAnnotation[] }
+        >({
+            query: (payload) => ({
+                url: `photo/${payload.id}/statistics`,
+                method: "PUT",
+                body: { statistics: { filename: payload.filename, results: payload.results } },
+            }),
+            invalidatesTags: (_result, _error, { id }) => [{ type: "Photo", id }],
         }),
     }),
 });
@@ -56,4 +76,5 @@ export const {
     useGetPhotoStatusQuery,
     useGetPhotoIdsQuery,
     useGetPhotosFullQuery,
+    useUpdatePhotoStatisticsMutation,
 } = photoApi;

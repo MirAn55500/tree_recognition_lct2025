@@ -106,19 +106,20 @@ const HomePage = () => {
                         {featuresData.map((item, index) => (
                             <Col xs={24} sm={12} md={6} key={index}>
                                 <Card
-                                    hoverable
                                     style={{
                                         textAlign: "center",
                                         height: "100%",
                                         display: "flex",
                                         flexDirection: "column",
                                     }}
-                                    bodyStyle={{
-                                        padding: "24px 16px",
-                                        flex: 1,
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        justifyContent: "space-between",
+                                    styles={{
+                                        body: {
+                                            padding: "24px 16px",
+                                            flex: 1,
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            justifyContent: "space-between",
+                                        },
                                     }}
                                 >
                                     <div>

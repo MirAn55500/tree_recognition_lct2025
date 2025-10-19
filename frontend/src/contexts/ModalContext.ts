@@ -1,7 +1,7 @@
 import type { ModalProps } from "antd";
 import { createContext, type ReactNode } from "react";
 
-export type CustomModalProps = { handleCancel?: () => void } & Omit<
+export type CustomModalProps = { handleCancel?: () => void; fullHeight?: boolean } & Omit<
     ModalProps,
     "open" | "onCancel" | "centered"
 >;

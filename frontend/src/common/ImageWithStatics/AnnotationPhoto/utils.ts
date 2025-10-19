@@ -19,20 +19,18 @@ export const generateAnnotation = (id: number, annotation: PhotoAnnotation) => {
         target: {
             annotation: idKey,
             selector: {
-                type: ShapeType.POLYGON,
+                type: ShapeType.RECTANGLE,
                 geometry: {
+                    x: Math.min(x1, x2),
+                    y: Math.min(y1, y2),
+                    w: Math.abs(x2 - x1),
+                    h: Math.abs(y2 - y1),
                     bounds: {
                         minX: Math.min(x1, x2),
-                        maxX: Math.max(x1, x2),
                         minY: Math.min(y1, y2),
+                        maxX: Math.max(x1, x2),
                         maxY: Math.max(y1, y2),
                     },
-                    points: [
-                        [x1, y1],
-                        [x2, y1],
-                        [x2, y2],
-                        [x1, y2],
-                    ],
                 },
             },
         },

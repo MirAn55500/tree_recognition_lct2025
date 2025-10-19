@@ -1,9 +1,3 @@
-.create-research-page {
-    padding: var(--page-containter-pading);
-    flex: 1;
-    flex-direction: column;
-}
-
 .create-research-header h3 {
     margin: 0 !important;
 }

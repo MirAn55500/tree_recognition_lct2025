@@ -1,0 +1,39 @@
+.annotation-card {
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.annotation-card:hover {
+    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.12);
+}
+
+.annotation-card-image-container {
+    height: 250px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.annotation-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.annotation-card-status {
+    display: flex;
+    justify-content: center;
+}
+
+.status-tag {
+    margin: 0;
+    font-weight: 500;
+    border: none;
+    border-radius: 12px;
+    padding: 4px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+}

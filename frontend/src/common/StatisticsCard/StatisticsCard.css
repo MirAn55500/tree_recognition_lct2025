@@ -1,0 +1,155 @@
+.statistics-card {
+    max-width: 400px;
+    max-height: 500px;
+    overflow: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    margin-top: 8px;
+}
+
+.statistics-card-content {
+    max-height: 350px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+.statistics-card-content.with-index {
+    padding-top: 40px;
+    padding-left: 8px;
+}
+
+.statistics-card-class-tag {
+    font-size: 12px;
+    padding: 2px 8px;
+    max-width: 100%;
+}
+
+.statistics-card-species-list {
+    max-height: 120px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.statistics-card-species-item {
+    margin-bottom: 8px;
+}
+
+.statistics-card-species-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.statistics-card-defects-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.statistics-card-diseases-list {
+    max-height: 100px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.statistics-card-disease-item {
+    margin-bottom: 6px;
+}
+
+.statistics-card-disease-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.statistics-card-disease-tag {
+    margin: 0;
+    font-size: 11px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.statistics-card-disease-percentage {
+    font-weight: bold;
+    color: #ff4d4f;
+}
+
+.statistics-card-dry-branches {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.statistics-card-progress {
+    margin: 0;
+    flex: 1;
+}
+
+.statistics-card-descriptions {
+    font-size: 12px;
+}
+
+.statistics-card-descriptions-label {
+    font-weight: bold;
+    font-size: 12px;
+    width: 30%;
+    background-color: #fafafa;
+}
+
+.statistics-card-descriptions-content {
+    font-size: 12px;
+}
+
+.statistics-card-index {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+}
+
+.statistics-card-ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 100%;
+    text-align: center !important;
+}
+
+.ant-descriptions-item-content {
+    max-width: 250px;
+}
+
+.statistics-card-species-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.statistics-card-species-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.statistics-card-species-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.statistics-card-species-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

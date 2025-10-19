@@ -6,11 +6,12 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import "./ResearchView.css";
 
 import ImageWithStatics from "@common/ImageWithStatics/ImageWithStatics";
+import EmptyLabel from "@common/EmptyLabel/EmptyLabel";
+import AverageStatistics from "@common/AverageStatistics/AverageStatistics";
+
 import { useGetResearchQuery } from "@services/api/research.api";
 
 import getPhotoLink from "@utils/getPhotoLink";
-import EmptyLabel from "@common/EmptyLabel/EmptyLabel";
-import AverageStatistics from "./AverageStatistics/AverageStatistics";
 
 const { Title, Link } = Typography;
 
@@ -25,7 +26,7 @@ const ResearchView = () => {
     const goBack = () => navigate("/research");
 
     return (
-        <Flex className="research-view-container">
+        <Flex className="page-container">
             <Flex className="research-view-header">
                 <Link onClick={goBack}>
                     <ArrowLeftOutlined /> Назад
@@ -68,7 +69,7 @@ const ResearchView = () => {
                     <Row gutter={[16, 16]} className="researches-container">
                         {researchData.photos.map((photo) => (
                             <Col span={6} key={photo.id}>
-                                <ImageWithStatics src={getPhotoLink(photo.id)} item={photo} />
+                                <ImageWithStatics src={getPhotoLink(photo.id)} item={photo.id} />
                             </Col>
                         ))}
                     </Row>

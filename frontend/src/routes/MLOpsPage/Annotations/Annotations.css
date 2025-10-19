@@ -1,0 +1,35 @@
+.annotations-list {
+    flex-direction: column;
+}
+
+.annotations-toolbar {
+    flex-direction: column;
+    gap: 20px;
+}
+
+.empty-dataset-container {
+    padding: 40px 0;
+    margin: 20px 0;
+}
+
+.empty-dataset-icon {
+    font-size: 64px;
+    color: #d9d9d9;
+}
+
+.empty-dataset-description {
+    text-align: center;
+}
+
+.empty-dataset-title {
+    font-size: 16px;
+    color: #8c8c8c;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.empty-dataset-subtitle {
+    font-size: 14px;
+    color: #bfbfbf;
+}

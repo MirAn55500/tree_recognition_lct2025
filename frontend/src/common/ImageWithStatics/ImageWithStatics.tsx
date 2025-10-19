@@ -5,18 +5,15 @@ import "./ImageWithStatics.css";
 import "@annotorious/react/annotorious-react.css";
 
 import AnnotationPhoto from "./AnnotationPhoto/AnnotationPhoto";
-
-import type { PhotoItem } from "#types/photo";
-
 import { useGetPhotoStatusQuery } from "@services/api/photo.api";
 
 interface ImageWithStaticsProps {
     src: string;
-    item: PhotoItem;
+    item: number;
 }
 
 const ImageWithStatics: React.FC<ImageWithStaticsProps> = ({ src, item }) => {
-    const { data: photoStatus } = useGetPhotoStatusQuery(item.id, {
+    const { data: photoStatus } = useGetPhotoStatusQuery(item, {
         refetchOnMountOrArgChange: true,
     });
 
@@ -29,7 +26,7 @@ const ImageWithStatics: React.FC<ImageWithStaticsProps> = ({ src, item }) => {
                             <AnnotationPhoto
                                 src={src}
                                 statistics={photoStatus?.statistics}
-                                id={item.id}
+                                id={item}
                             />
                         </Annotorious>
                     ),

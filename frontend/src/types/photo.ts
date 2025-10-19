@@ -1,5 +1,15 @@
-export type ProcessPhotoType = "uploaded" | "processing" | "processed";
+import type { Diases, Species } from "./dataset";
+
+export type ProcessPhotoType = "uploaded" | "processing" | "processed" | "annotated";
 export type ClassNameType = "tree" | "shrub" | "tree shrub";
+
+export const classNames: ClassNameType[] = ["tree", "shrub", "tree shrub"];
+
+export const classNameToString: Record<ClassNameType, string> = {
+    tree: "Дерево",
+    shrub: "Кустарник",
+    "tree shrub": "Дерево-кустарник",
+};
 
 export interface PhotoItemShort {
     id: number;
@@ -37,19 +47,19 @@ export interface PhotoStatusResponse {
 export interface PhotoAnnotation {
     bbox: number[];
     class_name: ClassNameType;
-    species: string[];
+    species: Species[];
     species_confidence: number[];
     hollows: number;
     cracks: number;
     stem_damage: number;
     crown_damage: number;
     fruiting_bodies: number;
-    diseases: string[];
+    diseases: Diases[];
     dry_branches_percentage: number;
 }
 
 export interface PhotoStatistics {
-    img_path: null;
+    filename: string;
     results: PhotoAnnotation[];
 }
 

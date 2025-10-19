@@ -5,6 +5,8 @@ import ModalContext, { type CustomModalProps, type IModalConfig } from "@context
 
 import type { WrapperProps } from "../wrappers.type";
 
+import "./ModalWrapper.css";
+
 const ModalWrapper: React.FC<WrapperProps> = ({ children }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [content, setContent] = useState<ReactNode>(null);
@@ -19,6 +21,9 @@ const ModalWrapper: React.FC<WrapperProps> = ({ children }) => {
     const closeModal = () => {
         props?.handleCancel && props.handleCancel();
         setOpen(false);
+    };
+
+    const handleAfterClose = () => {
         setContent(null);
         setProps({});
     };
@@ -34,6 +39,7 @@ const ModalWrapper: React.FC<WrapperProps> = ({ children }) => {
                     centered
                     open={open}
                     onCancel={closeModal}
+                    afterClose={handleAfterClose}
                     {...props}
                     destroyOnHidden
                     width={{
@@ -44,6 +50,7 @@ const ModalWrapper: React.FC<WrapperProps> = ({ children }) => {
                         xl: "50%",
                         xxl: "40%",
                     }}
+                    wrapClassName={props?.fullHeight ? "modal-full-height-wrap" : undefined}
                 >
                     {content}
                 </Modal>

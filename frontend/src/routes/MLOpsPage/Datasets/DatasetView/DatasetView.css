@@ -1,0 +1,42 @@
+.dataset-view-header {
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dataset-gallery {
+    flex-direction: column;
+}
+
+.dataset-gallery h4 {
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+.dataset-view-titles {
+    margin-top: 20px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.dataset-view-titles h5 {
+    flex-shrink: 0;
+}
+
+.dataset-description h4 {
+    margin-bottom: 20px !important;
+}
+
+.dataset-statistics,
+.dataset-gallery {
+    margin-top: 20px;
+}
+
+.dataset-description {
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.skeleton-full {
+    width: 100% !important;
+}

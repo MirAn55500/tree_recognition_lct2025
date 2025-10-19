@@ -71,7 +71,7 @@ const CreateResearch = () => {
     };
 
     return (
-        <Flex className="create-research-page">
+        <Flex className="page-container">
             <Flex className="create-research-header">
                 <Link onClick={goBack}>
                     <ArrowLeftOutlined /> Назад

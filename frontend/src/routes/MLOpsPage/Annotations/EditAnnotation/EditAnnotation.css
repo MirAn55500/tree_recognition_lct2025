@@ -1,0 +1,28 @@
+.edit-annotation-container {
+    height: 100vh;
+    padding: 20px;
+}
+
+.edit-annotation-header {
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 0;
+}
+
+.annotation-viewer-wrapper {
+    flex: 1;
+    gap: 20px;
+    height: calc(100vh - 160px);
+    min-height: 0;
+    position: relative;
+}
+
+.edit-annotation-title {
+    align-items: center;
+    gap: 20px;
+}
+
+.edit-annotation-help {
+    font-size: 16px;
+}
